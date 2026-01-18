@@ -2,7 +2,7 @@ import { useState, useRef } from 'react'
 import axios from 'axios'
 import './FileUpload.css'
 
-const FileUpload = ({ onAnalysisComplete, onAnalysisStart, onError }) => {
+const FileUpload = ({ onAnalysisComplete, onAnalysisStart, onError, onFileSelected }) => {
   const [dragActive, setDragActive] = useState(false)
   const [selectedFile, setSelectedFile] = useState(null)
   const fileInputRef = useRef(null)
@@ -49,6 +49,9 @@ const FileUpload = ({ onAnalysisComplete, onAnalysisStart, onError }) => {
     }
 
     setSelectedFile(file)
+    if (onFileSelected) {
+      onFileSelected(file)
+    }
   }
 
   const handleUpload = async () => {
@@ -86,9 +89,115 @@ const FileUpload = ({ onAnalysisComplete, onAnalysisStart, onError }) => {
   const onButtonClick = () => {
     fileInputRef.current.click()
   }
-
+  const handleDemoProtocol = async (type) => {
+    onAnalysisStart()
+    
+    // Simulate demo protocol analysis with mock data
+    setTimeout(() => {
+      if (type === 'good') {
+        onAnalysisComplete({
+          success_probability: 88,
+          critical_issues: [],
+          warnings: [
+            {
+              issue: "Consider Adding Statistical Power Analysis",
+              description: "While the protocol is well-designed, including a formal statistical power analysis would strengthen the experimental design and ensure adequate sample size."
+            }
+          ],
+          passed_checks: [
+            {
+              issue: "Comprehensive Controls Included",
+              description: "Protocol includes negative, positive, and blank controls - excellent experimental design."
+            },
+            {
+              issue: "Proper Replication Specified",
+              description: "All experiments will be performed in triplicate (n=3), ensuring statistical reliability."
+            },
+            {
+              issue: "Detailed Reagent Concentrations",
+              description: "All reagents have specified concentrations and preparation methods."
+            },
+            {
+              issue: "Clear Statistical Analysis Plan",
+              description: "Protocol specifies ANOVA with Tukey post-hoc test for multiple comparisons."
+            }
+          ],
+          estimated_cost: "$450-600",
+          estimated_time: "Approximately 24-30 hours",
+          suggestions: [
+            "Consider adding a power analysis to justify sample size",
+            "Include quality control checkpoints throughout the protocol",
+            "Specify acceptance criteria for each control"
+          ],
+          raw_analysis: "Demo analysis - Good Protocol"
+        })
+      } else {
+        onAnalysisComplete({
+          success_probability: 32,
+          critical_issues: [
+            {
+              issue: "No Controls Specified",
+              description: "Protocol lacks any mention of negative, positive, or blank controls. Without controls, it will be impossible to validate results or distinguish specific signals from background noise."
+            },
+            {
+              issue: "No Replication Mentioned",
+              description: "Protocol does not specify number of replicates. Single measurements are unreliable and provide no statistical power."
+            },
+            {
+              issue: "Vague Reagent Descriptions",
+              description: "Multiple reagents lack concentration specifications (e.g., 'add antibody' without concentration). This will lead to irreproducible results."
+            }
+          ],
+          warnings: [
+            {
+              issue: "Missing Buffer Compositions",
+              description: "Buffer compositions not specified. Different buffer formulations can significantly affect results."
+            },
+            {
+              issue: "No Statistical Analysis Plan",
+              description: "No mention of how data will be analyzed statistically."
+            },
+            {
+              issue: "Unclear Sample Size",
+              description: "Number of biological samples not specified."
+            }
+          ],
+          passed_checks: [
+            {
+              issue: "General Methodology Present",
+              description: "Basic experimental steps are outlined."
+            }
+          ],
+          estimated_cost: "Unknown - insufficient detail",
+          estimated_time: "Unknown - likely to require multiple attempts",
+          suggestions: [
+            "Add negative, positive, and blank controls",
+            "Specify n=3 minimum for all measurements",
+            "Provide exact concentrations for all reagents",
+            "Define buffer compositions (pH, molarity, components)",
+            "Include statistical analysis plan (ANOVA, t-test, etc.)",
+            "Specify biological sample size and technical replicates",
+            "Add acceptance criteria for quality control"
+          ],
+          raw_analysis: "Demo analysis - Bad Protocol"
+        })
+      }
+    }, 2000) // Simulate API delay
+  }
   return (
     <div className="file-upload-container">
+      {!selectedFile && (
+        <div className="demo-buttons">
+          <p className="demo-label">or try a demo protocol:</p>
+          <button className="demo-button good" onClick={() => handleDemoProtocol('good')}>
+            ✅ Good Protocol Example
+          </button>
+          <button className="demo-button bad" onClick={() => handleDemoProtocol('bad')}>
+            ❌ Bad Protocol Example
+          </button>
+        </div>
+      )}
+      
       <div 
         className={`file-upload-area ${dragActive ? 'drag-active' : ''} ${selectedFile ? 'file-selected' : ''}`}
         onDragEnter={handleDrag}

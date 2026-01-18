@@ -7,6 +7,12 @@ React + Vite frontend for uploading and analyzing experimental protocols.
 - **Drag-and-Drop Upload**: Easy PDF file upload
 - **Real-time Analysis**: Instant feedback on protocol quality
 - **Visual Results**: Color-coded issues (Red/Yellow/Green)
+- **PDF Inline Highlighting**: Issues highlighted directly on protocol PDF ✨ NEW
+- **Split-Panel View**: View original protocol alongside analysis
+- **Skeleton Loader**: DNA helix animation during analysis
+- **Confetti Celebration**: Visual reward for high-quality protocols (≥85%)
+- **PDF Export**: Download analysis report as formatted PDF
+- **Demo Mode**: Pre-loaded examples of good and bad protocols
 - **Responsive Design**: Works on desktop and mobile
 - **Success Probability Score**: Clear metric for protocol viability
 
@@ -55,15 +61,20 @@ Scan_frontend/
 │   │   ├── FileUpload.css
 │   │   ├── Results.jsx          # Analysis results display
 │   │   ├── Results.css
+│   │   ├── PDFViewer.jsx        # PDF viewer with inline highlights ✨
+│   │   ├── PDFViewer.css
+│   │   ├── SkeletonLoader.jsx   # DNA helix loading animation
+│   │   ├── SkeletonLoader.css
 │   │   ├── Header.jsx           # App header
 │   │   └── Header.css
 │   ├── App.jsx                  # Main app component
 │   ├── App.css
 │   ├── main.jsx                 # Entry point
-│   └── index.css                # Global styles
+│   └── index.css                # Global styles (dark theme)
 ├── index.html                   # HTML template
 ├── vite.config.js              # Vite configuration
 ├── package.json                # Dependencies
+├── PDF_HIGHLIGHTING.md         # Inline highlighting docs ✨
 └── README.md                   # This file
 ```
 
@@ -80,11 +91,15 @@ POST to /api/analyze → Show loading → Receive results → Display in Results
 ```
 
 ### 3. Results Display
-- **Success Probability**: Circular progress indicator
+- **Success Probability**: Circular progress indicator with confetti for ≥85%
+- **Split-Panel Layout**: Original PDF on left, analysis on right
+- **PDF Inline Highlights**: Critical issues (red) and warnings (yellow) highlighted directly on PDF
 - **Critical Issues**: Red flags that will cause failure
 - **Warnings**: Yellow flags to improve
 - **Good Practices**: Green checks for well-designed aspects
 - **Suggestions**: Actionable recommendations
+- **PDF Export**: Download formatted analysis report
+- **Demo Mode**: Try pre-loaded good (88%) and bad (32%) protocol examples
 
 ## API Integration
 

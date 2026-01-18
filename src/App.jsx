@@ -1,18 +1,35 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import confetti from 'canvas-confetti'
 import FileUpload from './components/FileUpload'
 import Results from './components/Results'
 import Header from './components/Header'
+import SkeletonLoader from './components/SkeletonLoader'
 import './App.css'
 
 function App() {
   const [results, setResults] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [uploadedFile, setUploadedFile] = useState(null)
+  const [protocolText, setProtocolText] = useState('')
 
   const handleAnalysisComplete = (data) => {
     setResults(data)
     setLoading(false)
     setError(null)
+    setProtocolText(data.protocol_text || '')
+    
+    // Trigger confetti for high scores
+    if (data.success_probability >= 85) {
+      setTimeout(() => {
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ['#667eea', '#764ba2', '#10b981']
+        })
+      }, 500)
+    }
   }
 
   const handleAnalysisStart = () => {
@@ -31,6 +48,8 @@ function App() {
     setResults(null)
     setError(null)
     setLoading(false)
+    setUploadedFile(null)
+    setProtocolText('')
   }
 
   return (
@@ -53,6 +72,7 @@ function App() {
             onAnalysisComplete={handleAnalysisComplete}
             onAnalysisStart={handleAnalysisStart}
             onError={handleError}
+            onFileSelected={setUploadedFile}
           />
 
           {error && (
@@ -66,17 +86,15 @@ function App() {
           )}
 
           {loading && (
-            <div className="loading-state">
-              <div className="spinner"></div>
-              <p>Analyzing your protocol...</p>
-              <span className="loading-subtext">This may take 10-15 seconds</span>
-            </div>
+            <SkeletonLoader />
           )}
 
           {results && (
             <Results 
               results={results} 
               onReset={handleReset}
+              uploadedFile={uploadedFile}
+              protocolText={protocolText}
             />
           )}
         </div>
