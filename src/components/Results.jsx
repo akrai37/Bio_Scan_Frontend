@@ -12,6 +12,8 @@ const Results = ({ results, onReset, uploadedFile, protocolText }) => {
   const [selectedFixes, setSelectedFixes] = useState({})
   const [generatingProtocol, setGeneratingProtocol] = useState(false)
   const [improvedProtocol, setImprovedProtocol] = useState(null)
+  const [shoppingList, setShoppingList] = useState(null)
+  const [loadingShoppingList, setLoadingShoppingList] = useState(false)
   
   const getScoreColor = (score) => {
     if (score >= 70) return '#10b981' // Green
@@ -149,6 +151,44 @@ const Results = ({ results, onReset, uploadedFile, protocolText }) => {
       alert('Failed to generate improved protocol. Please try again.')
     } finally {
       setGeneratingProtocol(false)
+    }
+  }
+
+  // Generate shopping list from improved protocol
+  const generateShoppingList = async () => {
+    if (!improvedProtocol) return
+    
+    setLoadingShoppingList(true)
+    
+    try {
+      const response = await fetch('http://localhost:8000/api/extract-reagents', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          protocol_text: improvedProtocol.improved_protocol
+        })
+      })
+      
+      if (!response.ok) throw new Error('Failed to generate shopping list')
+      
+      const shopping = await response.json()
+      setShoppingList(shopping)
+      
+      // Scroll to shopping list section
+      setTimeout(() => {
+        document.getElementById('shopping-list-section')?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start' 
+        })
+      }, 100)
+      
+    } catch (error) {
+      console.error('Error generating shopping list:', error)
+      alert('Failed to generate shopping list. Please try again.')
+    } finally {
+      setLoadingShoppingList(false)
     }
   }
 
@@ -742,6 +782,62 @@ const Results = ({ results, onReset, uploadedFile, protocolText }) => {
               className="protocol-text" 
               dangerouslySetInnerHTML={{ __html: formatProtocol(improvedProtocol.improved_protocol) }}
             />
+          </div>
+
+          {/* Generate Shopping List Button */}
+          <div className="shopping-list-trigger">
+            <button 
+              className="generate-shopping-btn" 
+              onClick={generateShoppingList}
+              disabled={loadingShoppingList}
+            >
+              {loadingShoppingList ? '🔄 Generating...' : '🛒 Generate Shopping List'}
+            </button>
+            <p className="shopping-hint">Get all materials needed for the improved protocol</p>
+          </div>
+        </div>
+      )}
+
+      {/* Shopping List Section */}
+      {shoppingList && (
+        <div className="shopping-list-section" id="shopping-list-section">
+          <div className="shopping-header">
+            <h3>🛒 Shopping List</h3>
+            <div className="total-cost">
+              <span className="cost-label">Total Estimated Cost:</span>
+              <span className="cost-value">${shoppingList.total_cost.toLocaleString()}</span>
+            </div>
+          </div>
+
+          <div className="shopping-categories">
+            {shoppingList.categories.map((category, catIndex) => (
+              <div key={catIndex} className="shopping-category">
+                <h4 className="category-name">{category.name}</h4>
+                <div className="category-items">
+                  {category.items.map((item, itemIndex) => (
+                    <div key={itemIndex} className="shopping-item">
+                      <div className="item-info">
+                        <div className="item-name">{item.name}</div>
+                        <div className="item-specs">
+                          {item.concentration && <span className="spec">{item.concentration}</span>}
+                          {item.quantity && <span className="spec">{item.quantity}</span>}
+                        </div>
+                      </div>
+                      <div className="item-price">${item.estimated_price}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="category-subtotal">
+                  Subtotal: ${category.items.reduce((sum, item) => sum + item.estimated_price, 0).toLocaleString()}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="shopping-footer">
+            <p className="pricing-note">
+              💡 All materials from improved protocol. Prices estimated from typical supplier catalogs (Sigma-Aldrich, Thermo Fisher, VWR)
+            </p>
           </div>
         </div>
       )}
